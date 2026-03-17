@@ -1,0 +1,66 @@
+# ascii-art-color
+
+An extension of ascii-art that renders strings as ASCII art with optional terminal color support.
+
+## Usage
+```bash
+# No color
+go run . "Hello World"
+
+# Color the whole string
+go run . --color=<color> "Hello World"
+
+# Color a substring
+go run . --color=<color> <substring> "Hello World"
+
+# With a custom banner
+go run . --color=<color> <substring> "Hello World" [banner]
+```
+
+## Examples
+```bash
+go run . "Hello"
+go run . --color=red "Hello World"
+go run . --color=red kit "a king kitten have kit"
+go run . --color=rgb(255,165,0) "Hello" shadow
+go run . --color=hsl(120,100,50) kit "a king kitten" thinkertoy
+```
+
+## Color Formats
+
+| Format        | Example              |
+|---------------|----------------------|
+| Named         | `red`, `blue`, `green`, `yellow`, `cyan`, `magenta`, `white`, `black`, `orange`, `pink`, `purple` |
+| RGB           | `rgb(255,0,0)`       |
+| HSL           | `hsl(0,100,50)`      |
+
+## Banners
+
+Three banner styles are available: `standard` (default), `shadow`, `thinkertoy`.
+
+## Project Structure
+```
+ascii-art/
+├── go.mod
+├── main.go
+├── main_test.go
+├── banner/
+│   ├── banner.go
+│   ├── banner_test.go
+│   └── files/
+│       ├── standard.txt
+│       ├── shadow.txt
+│       └── thinkertoy.txt
+└── color/
+    ├── color.go
+    └── color_test.go
+```
+
+## Running Tests
+```bash
+go test ./...
+```
+
+## Allowed Packages
+
+Only standard Go packages are used.
