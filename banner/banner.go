@@ -18,7 +18,7 @@ func Load(name string) ([][]string, error) {
 
 	data, err := os.ReadFile(filename)
 	if err != nil {
-		return nil, fmt.Errorf("cannot open banner file '%s.txt': %w", name, err)
+		return nil, fmt.Errorf("Error: Cannot open banner file '%s.txt': %w", name, err)
 	}
 
 	return parse(data, name)
