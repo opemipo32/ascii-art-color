@@ -13,13 +13,17 @@ import (
 const usage = "Usage: go run . [OPTION] [STRING]\nEX: go run . --color=<color> <substring to be colored> \"something\""
 
 func main() {
+	if len(os.Args) == 0 {
+		fmt.Println(usage)
+		return
+	}
 
 	if len(os.Args) != 3 && len(os.Args) != 5 && len(os.Args) != 2 && len(os.Args) != 4 {
 		fmt.Println("length Issue..")
 		return
 	}
 
-	// ========== Extracting SubString and InputText ======
+	// ========== Extracting SubString and Input ======
 	colorTarget := ""
 	bannerName := "standard"
 	var input string
@@ -60,6 +64,10 @@ func main() {
 	}
 
 	colorValue := strings.ToLower(strings.TrimPrefix(option, "--color="))
+	if _, err := color.Resolve(colorValue); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
 
 	chars, err := banner.Load(bannerName)
 	if err != nil {
@@ -67,15 +75,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Printing A new line for empty input text
+	// Printing A new line for empty input
 	if input == "" {
 		fmt.Println()
 		return
 	}
 
-	// Escaping all newline from the input text
+	// Escaping all newline from the input
 	input = strings.ReplaceAll(input, `\n`, "\n")
-	// spliting the input text into deffrent lines
+	// spliting the input into deffrent lines
 	lines := strings.Split(input, "\n")
 
 	// looping through each line
