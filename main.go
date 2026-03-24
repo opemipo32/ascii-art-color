@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 
 	"ascii-art/banner"
@@ -12,73 +13,53 @@ import (
 const usage = "Usage: go run . [OPTION] [STRING]\nEX: go run . --color=<color> <substring to be colored> \"something\""
 
 func main() {
-	args := os.Args[1:]
 
-	if len(args) == 0 {
+	if len(os.Args) != 3 && len(os.Args) != 5 && len(os.Args) != 2 && len(os.Args) != 4 {
+		fmt.Println("length Issue..")
 		return
 	}
 
-	colorValue := ""
+	// ========== Extracting SubString and InputText ======
 	colorTarget := ""
-	var remaining []string
-
-	for i := 0; i < len(args); i++ {
-		if strings.HasPrefix(args[i], "--color=") {
-			colorValue = strings.TrimPrefix(args[i], "--color=")
-			if colorValue == "" {
-				fmt.Fprintln(os.Stderr, usage)
-				os.Exit(1)
-			}
-		} else if strings.HasPrefix(args[i], "--") {
-			fmt.Fprintln(os.Stderr, usage)
-			os.Exit(1)
-		} else {
-			remaining = append(remaining, args[i])
-		}
-	}
-
-	input := ""
 	bannerName := "standard"
+	var input string
 
-	if colorValue != "" {
-		if len(remaining) == 0 || len(remaining) > 3 {
-			fmt.Fprintln(os.Stderr, usage)
-			os.Exit(1)
-		}
+	option := ""
 
-		if len(remaining) == 1 {
-			colorTarget = ""
-			input = remaining[0]
-		} else if len(remaining) == 2 {
-			if isValidBanner(remaining[1]) {
-				colorTarget = ""
-				input = remaining[0]
-				bannerName = remaining[1]
-			} else {
-				colorTarget = remaining[0]
-				input = remaining[1]
-			}
-		} else if len(remaining) == 3 {
-			colorTarget = remaining[0]
-			input = remaining[1]
-			bannerName = remaining[2]
-		}
-	} else {
-		if len(remaining) < 1 || len(remaining) > 2 {
-			fmt.Fprintln(os.Stderr, usage)
-			os.Exit(1)
-		}
-		input = remaining[0]
-		if len(remaining) == 2 {
-			bannerName = remaining[1]
+	switch len(os.Args) {
+	case 4:
+		colorTarget = os.Args[2]
+		input = os.Args[3]
+		option = os.Args[1]
+
+	case 5:
+		colorTarget = os.Args[2]
+		input = os.Args[3]
+		bannerName = os.Args[4]
+		option = os.Args[1]
+
+	case 3:
+		input = os.Args[2]
+		option = os.Args[1]
+	case 2:
+		input = os.Args[1]
+	}
+
+	input = strings.ReplaceAll(input, "\\n", "\n")
+
+	if !strings.HasPrefix(option, "--color=") {
+		if option != "" {
+			fmt.Println(usage)
+			return
 		}
 	}
-	if colorValue != "" {
-		if _, err := color.Resolve(colorValue); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
-		}
+
+	if !isValidBanner(bannerName) {
+		fmt.Println(usage)
+		return
 	}
+
+	colorValue := strings.ToLower(strings.TrimPrefix(option, "--color="))
 
 	chars, err := banner.Load(bannerName)
 	if err != nil {
@@ -86,22 +67,26 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Printing A new line for empty input text
 	if input == "" {
 		fmt.Println()
 		return
 	}
 
+	// Escaping all newline from the input text
 	input = strings.ReplaceAll(input, `\n`, "\n")
+	// spliting the input text into deffrent lines
 	lines := strings.Split(input, "\n")
 
+	// looping through each line
 	for i, line := range lines {
+		// printing new line for empty line found
 		if line == "" {
 			if i < len(lines)-1 {
 				fmt.Println()
 			}
 			continue
 		}
-
 		for _, ch := range line {
 			idx := int(ch) - 32
 			if idx < 0 || idx > 94 {
@@ -128,9 +113,12 @@ func printColoredRow(line string, row int, chars [][]string, colorValue, colorTa
 
 	if colorTarget == "" {
 		for i := range colored {
+			// setting the color target to true for the
+			// whole if no sub string is specified
 			colored[i] = true
 		}
 	} else {
+		// conerting the substring into a slice of runes
 		targetRunes := []rune(colorTarget)
 		tLen := len(targetRunes)
 		for i := 0; i <= len(runes)-tLen; i++ {
@@ -149,6 +137,7 @@ func printColoredRow(line string, row int, chars [][]string, colorValue, colorTa
 		}
 	}
 
+	// Checking if the colorValue is valid
 	ansiCode, _ := color.Resolve(colorValue)
 	for i, ch := range runes {
 		art := chars[int(ch)-32][row]
@@ -160,12 +149,11 @@ func printColoredRow(line string, row int, chars [][]string, colorValue, colorTa
 	}
 }
 
+// used to check if the
+// input banner name
+// is one we work with
 func isValidBanner(name string) bool {
 	validBanners := []string{"standard", "shadow", "thinkertoy"}
-	for _, b := range validBanners {
-		if name == b {
-			return true
-		}
-	}
-	return false
+
+	return slices.Contains(validBanners, name)
 }
